@@ -53,6 +53,8 @@ public class PCAdventureGame {
             printChapter2(months);
         }
 
+        printChapter3();
+
         System.out.println();
         System.out.println("Thank you for playing PC Adventure!");
         scnr.close();
@@ -61,7 +63,8 @@ public class PCAdventureGame {
     // Data Input Methods
 
     private void collectUserData() {
-        System.out.println("=== PC ADVENTURE - INPUT SETUP ===");
+        System.out.println("PC ADVENTURE - INPUT SETUP");
+        System.out.println("--------------------------");
 
         narratorName = getUserName("your");
         friendName = getUserName("your friend's");
@@ -113,7 +116,8 @@ public class PCAdventureGame {
     // Initial Storyline
 
     private void printPrologue() {
-        System.out.println("=== PROLOGUE ===");
+        System.out.println("PROLOGUE");
+        System.out.println("--------");
         System.out.println("In " + year + ", " + narratorName + " and " + friendName +
                 " lived in " + city + ". At " + ageThen + " years old,");
         System.out.println("their dream was to buy a powerful gaming PC from " + storeName + ".");
@@ -171,7 +175,8 @@ public class PCAdventureGame {
     // Each way of proceeding introductions
 
     private void printWorkPathIntro(double balance) {
-        System.out.println("=== CHAPTER 1 - THE JOB HUNT ===");
+        System.out.println("CHAPTER 1 - THE JOB HUNT");
+        System.out.println("------------------------");
         System.out.println(friendName + " decides to take a part-time job to avoid financing.");
         System.out.println("Together, you review some options:");
         for (int i = 0; i < jobOptions.length; i++) {
@@ -184,7 +189,8 @@ public class PCAdventureGame {
     }
 
     private void printFinancePathIntro(double balance) {
-        System.out.println("=== CHAPTER 1 - EASY CREDIT ===");
+        System.out.println("CHAPTER 1 - EASY CREDIT");
+        System.out.println("-----------------------");
         System.out.println(friendName + " is tired and suggests financing the PC instead of working.");
         System.out.println("You sign a payment plan with added interest.");
         System.out.println("Total remaining balance after the financing agreement: $" +
@@ -199,7 +205,8 @@ public class PCAdventureGame {
             return 0;
         }
 
-        System.out.println("=== PAYMENT JOURNEY ===");
+        System.out.println("PAYMENT JOURNEY");
+        System.out.println("---------------");
         int months = 0;
 
         while (remaining > 0) {
@@ -216,11 +223,10 @@ public class PCAdventureGame {
         return months;
     }
 
-    // ================== Final Chapters ==================
-
     // Case where it was enough from the start
     private void printInstantPurchaseChapter() {
-        System.out.println("=== CHAPTER 2 - READY FROM DAY ONE ===");
+        System.out.println("CHAPTER 2 - READY FROM DAY ONE");
+        System.out.println("------------------------------");
         System.out.println("To your surprise, the money you had saved was enough.");
         System.out.println(narratorName + " and " + friendName +
                 " walk into " + storeName + " and pay the PC in full.");
@@ -230,7 +236,8 @@ public class PCAdventureGame {
 
     private void printChapter2(int months) {
         System.out.println();
-        System.out.println("=== CHAPTER 2 - THE FIRST BOOT ===");
+        System.out.println("CHAPTER 2 - THE FIRST BOOT");
+        System.out.println("--------------------------");
 
         if (finance) {
             System.out.println("After " + months + " month(s) of strict payments, "
@@ -244,7 +251,98 @@ public class PCAdventureGame {
                     + " walk into " + storeName + " with cash in hand.");
             System.out.println("Every late shift, delivery, and tired weekend "
                     + "comes back when the PC finally powers on.");
-            System.out.println("The new PC is more than just a pc—it's proof that patience");
+            System.out.println("The new PC is more than just a pc — it's proof that patience pays off.");
         }
+    }
+
+    // New Chapter 3
+    private void printChapter3() {
+        System.out.println();
+        System.out.println("CHAPTER 3 - THE GAME BEGINS");
+        System.out.println("---------------------------");
+        System.out.println("When the pc turn on, " + narratorName + " and " + friendName +
+                " started planing ther firts game night.");
+        storyNode[] events = {
+                new TaskNode("Donload steanm and instal game called: prometían security rescue", 30),
+                new TaskNode("Set Up Discord", 10),
+                new EventNode("Invite friends to join the game night"),
+                new TaskNode("Configure settings", 15),
+                new MilestoneNode("Game Night Success! and ready to play game"),
+                new TaskNode("Order pizza and snacks", 20),
+                new EventNode("Enjoy the game night with friends and won several rounds")
+        };
+
+        for (storyNode event : events) {
+            event.display();
+        }
+
+        System.out.println(
+                "The setup took " + countTime(events, 0) + " mins with " + countTasks(events, 0) + " tasks completed"
+                        + "but the excitement made every minute worthwhile.");
+    }
+
+    private int countTime(storyNode[] arr, int i) {
+        if (i >= arr.length) {
+            return 0;
+        }
+        return arr[i].getTime() + countTime(arr, i + 1);
+    }
+
+    private int countTasks(storyNode[] arr, int i) {
+        if (i >= arr.length) {
+            return 0;
+        }
+        return (arr[i].getTime() > 0 ? 1 : 0) + countTasks(arr, i + 1);
+    }
+}
+
+abstract class storyNode {
+    protected String name;
+
+    public storyNode(String name) {
+        this.name = name;
+    }
+
+    public abstract void display();
+
+    public int getTime() {
+        return 0;
+    }
+}
+
+class TaskNode extends storyNode {
+    private int min;
+
+    public TaskNode(String name, int min) {
+        super(name);
+        this.min = min;
+    }
+
+    public void display() {
+        System.out.println(name + " (" + min + " mins used)");
+    }
+
+    public int getTime() {
+        return min;
+    }
+}
+
+class EventNode extends storyNode {
+    public EventNode(String name) {
+        super(name);
+    }
+
+    public void display() {
+        System.out.println(name);
+    }
+}
+
+class MilestoneNode extends storyNode {
+    public MilestoneNode(String name) {
+        super(name);
+    }
+
+    public void display() {
+        System.out.println("-- " + name + " --");
     }
 }
