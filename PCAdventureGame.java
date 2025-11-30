@@ -333,7 +333,7 @@ class EventNode extends storyNode {
     }
 
     public void display() {
-        System.out.println(name + " -");
+        System.out.println(name);
     }
 }
 
