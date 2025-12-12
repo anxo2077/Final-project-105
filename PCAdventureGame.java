@@ -1,8 +1,11 @@
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
 
-public class PCAdventureGame {
+public class PCAdventureGame extends JFrame {
 
-    private final Scanner scnr = new Scanner(System.in);
+    private JTextArea storyArea;
+    private JPanel choicesPanel;
+    private JLabel headerLabel;
 
     // Collect user data
     private String narratorName;
@@ -10,17 +13,14 @@ public class PCAdventureGame {
     private String friendPronoun;
     private String city;
     private String storeName;
-
     private int year;
     private int ageThen;
-
     private double pcPrice;
     private double moneySaved;
     private double savingsPerMonth;
-    private boolean finance; // true = use financing, false = work for it/save
     private double moneyLeft;
+    private boolean finance;
 
-    // Job options
     private final String[] jobOptions = {
             "Weekend cashier at a local electronics store (+$160/month).",
             "Pizza delivery driver on Friday nights (+$160/month).",
@@ -30,255 +30,289 @@ public class PCAdventureGame {
     // Financing offers (interest rates)
     private final double[] financeOffers = { 0.10, 0.15, 0.08 };
 
-    public void run() {
-        collectUserData();
-        printPrologue();
+    public PCAdventureGame() {
+        setTitle("PC Adventure");
+        setSize(600, 550);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        finance = getFinanceDecision();
+        headerLabel = new JLabel("PC ADVENTURE", SwingConstants.CENTER);
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
 
-        if (finance) {
-            moneyLeft = calculateBalance(pcPrice, moneySaved, true, financeOffers);
-            printFinancePathIntro(moneyLeft);
-        } else {
-            moneyLeft = calculateBalance(pcPrice, moneySaved);
-            printWorkPathIntro(moneyLeft);
-            // Reward for working: increase savings capacity
-            savingsPerMonth += 160.0;
-        }
+        storyArea = new JTextArea();
+        storyArea.setEditable(false);
+        choicesPanel = new JPanel(new FlowLayout());
 
-        if (moneyLeft <= 0) {
-            printInstantPurchaseChapter();
-        } else {
-            int months = simulateMonthlyPayments(moneyLeft, savingsPerMonth);
-            printChapter2(months);
-        }
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.add(headerLabel, BorderLayout.NORTH);
+        mainPanel.add(new JScrollPane(storyArea), BorderLayout.CENTER);
+        mainPanel.add(choicesPanel, BorderLayout.SOUTH);
 
-        printChapter3();
+        add(mainPanel);
+        setVisible(true);
 
-        System.out.println();
-        System.out.println("Thank you for playing PC Adventure!");
-        scnr.close();
+        showInputForm();
     }
 
-    // Data Input Methods
+    private void showInputForm() {
+        headerLabel.setText("PC ADVENTURE - INPUT SETUP");
+        choicesPanel.removeAll();
 
-    private void collectUserData() {
-        System.out.println("PC ADVENTURE - INPUT SETUP");
-        System.out.println("--------------------------");
+        JPanel inputPanel = new JPanel(new GridLayout(10, 2, 5, 5));
 
-        narratorName = getUserName("your");
-        friendName = getUserName("your friend's");
+        JTextField[] fields = new JTextField[10];
+        String[] labels = {
+                "Your first name:",
+                "Friend's first name:",
+                "Friend's pronoun (he/she/they):",
+                "City name:",
+                "Computer store name:",
+                "Year (e.g., 2015):",
+                "Your age that year:",
+                "PC price (e.g., 1198.56):",
+                "Money saved (e.g., 560.56):",
+                "Monthly savings (e.g., 300.00):"
+        };
 
-        System.out.print("Enter your friend's pronoun (he/she/they): ");
-        friendPronoun = scnr.next();
-
-        System.out.print("Enter the name of the city where the story takes place: ");
-        city = scnr.next();
-
-        System.out.print("Enter the name of the computer store: ");
-        storeName = scnr.next();
-
-        year = getValidInt("Year in which the story took place (e.g., 2015): ");
-        ageThen = getValidInt("Enter the age you were that year (e.g., 15): ");
-
-        pcPrice = getValidDouble("Enter the price of the computer (e.g., 1198.56): ");
-        moneySaved = getValidDouble("Amount of money saved (e.g., 560.56): ");
-        savingsPerMonth = getValidDouble("Amount of money you can save monthly today (e.g., 300.00): ");
-
-        System.out.println();
-    }
-
-    private String getUserName(String whose) {
-        System.out.print("Enter " + whose + " first name: ");
-        return scnr.next();
-    }
-
-    private int getValidInt(String prompt) {
-        System.out.print(prompt);
-        while (!scnr.hasNextInt()) {
-            System.out.println("Invalid input. Please enter a whole number.");
-            System.out.print(prompt);
-            scnr.next();
+        for (int i = 0; i < 10; i++) {
+            inputPanel.add(new JLabel(labels[i]));
+            fields[i] = new JTextField();
+            inputPanel.add(fields[i]);
         }
-        return scnr.nextInt();
-    }
 
-    private double getValidDouble(String prompt) {
-        System.out.print(prompt);
-        while (!scnr.hasNextDouble()) {
-            System.out.println("Invalid input. Please enter a numeric value.");
-            System.out.print(prompt);
-            scnr.next();
-        }
-        return scnr.nextDouble();
+        storyArea.setText("Welcome to PC Adventure!\n\nPlease fill in your information to begin.");
+
+        JButton startBtn = new JButton("Start Adventure");
+        startBtn.addActionListener(e -> {
+            try {
+                narratorName = fields[0].getText().trim();
+                friendName = fields[1].getText().trim();
+                friendPronoun = fields[2].getText().trim();
+                city = fields[3].getText().trim();
+                storeName = fields[4].getText().trim();
+                year = Integer.parseInt(fields[5].getText().trim());
+                ageThen = Integer.parseInt(fields[6].getText().trim());
+                pcPrice = Double.parseDouble(fields[7].getText().trim());
+                moneySaved = Double.parseDouble(fields[8].getText().trim());
+                savingsPerMonth = Double.parseDouble(fields[9].getText().trim());
+
+                if (narratorName.isEmpty() || friendName.isEmpty()) {
+                    storyArea.setText("Error: Names cannot be empty.");
+                    return;
+                }
+
+                showPrologue();
+            } catch (NumberFormatException ex) {
+                storyArea.setText("Error: Please enter valid numbers.");
+            }
+        });
+
+        choicesPanel.add(inputPanel);
+        choicesPanel.add(startBtn);
+        refresh();
     }
 
     // Initial Storyline
+    private void showPrologue() {
+        headerLabel.setText("PROLOGUE");
+        choicesPanel.removeAll();
 
-    private void printPrologue() {
-        System.out.println("PROLOGUE");
-        System.out.println("--------");
-        System.out.println("In " + year + ", " + narratorName + " and " + friendName +
-                " lived in " + city + ". At " + ageThen + " years old,");
-        System.out.println("their dream was to buy a powerful gaming PC from " + storeName + ".");
-        System.out.println("The total cost of the dream machine was $" +
-                String.format("%.2f", pcPrice) + ".");
-        System.out.println(narratorName + " had already saved $" +
-                String.format("%.2f", moneySaved) +
-                ", and could save $" + String.format("%.2f", savingsPerMonth) +
-                " per month.");
-        System.out.println();
+        String text = "In " + year + ", " + narratorName + " and " + friendName + " lived in " + city +
+                ". At " + ageThen + " years old,\ntheir dream was to buy a powerful gaming PC from " + storeName +
+                ".\n\nThe total cost was $" + String.format("%.2f", pcPrice) + ". " + narratorName +
+                " had saved $" + String.format("%.2f", moneySaved) + ", and could save $" +
+                String.format("%.2f", savingsPerMonth) + " per month.\n\n" + friendName +
+                " wanted to work part-time to help. Does " + friendName + " take a job?";
+
+        storyArea.setText(text);
+
+        // Main Decision Point
+        JButton yesBtn = new JButton("Yes - Take a job");
+        JButton noBtn = new JButton("No - Use financing");
+
+        yesBtn.addActionListener(e -> {
+            finance = false;
+            moneyLeft = pcPrice - moneySaved;
+            savingsPerMonth += 160;
+            showWorkPath();
+        });
+
+        noBtn.addActionListener(e -> {
+            finance = true;
+            moneyLeft = calculateFinance();
+            showFinancePath();
+        });
+
+        choicesPanel.add(yesBtn);
+        choicesPanel.add(noBtn);
+        refresh();
     }
 
-    // Main Decision Point
-
-    private boolean getFinanceDecision() {
-        while (true) {
-            System.out.print(friendName +
-                    " wanted to work part-time to help pay for the computer. "
-                    + "Does " + friendName + " actually take a job? (yes/no): ");
-            String choice = scnr.next().toLowerCase();
-
-            if (choice.equals("yes")) {
-                // Van a trabajar, no usan financiamiento
-                return false;
-            } else if (choice.equals("no")) {
-                // Prefieren financiamiento
-                return true;
-            } else {
-                System.out.println("Invalid response. Please answer 'yes' or 'no'.");
-            }
-        }
+    // Calculate
+    private double calculateFinance() {
+        double base = pcPrice - moneySaved;
+        int index = (int) (Math.random() * financeOffers.length);
+        double rate = financeOffers[index];
+        return base + (base * rate);
     }
 
-    // Calculations (with overloading)
+    private void showWorkPath() {
+        headerLabel.setText("CHAPTER 1 - THE JOB HUNT");
+        choicesPanel.removeAll();
 
-    private double calculateBalance(double price, double saved) {
-        return price - saved;
-    }
+        StringBuilder sb = new StringBuilder();
+        sb.append(friendName + " decides to take a part-time job.\nOptions:\n\n");
 
-    private double calculateBalance(double price, double saved,
-            boolean useFinance, double[] offers) {
-        double base = calculateBalance(price, saved);
-        if (!useFinance) {
-            return base;
-        }
-
-        // Randomly select a financing offer
-        int index = (int) (Math.random() * offers.length);
-        double rate = offers[index];
-
-        double totalWithInterest = base + (base * rate);
-        return totalWithInterest;
-    }
-
-    // Each way of proceeding introductions
-
-    private void printWorkPathIntro(double balance) {
-        System.out.println("CHAPTER 1 - THE JOB HUNT");
-        System.out.println("------------------------");
-        System.out.println(friendName + " decides to take a part-time job to avoid financing.");
-        System.out.println("Together, you review some options:");
         for (int i = 0; i < jobOptions.length; i++) {
-            System.out.println((i + 1) + ") " + jobOptions[i]);
-        }
-        System.out.println("Regardless of the option, your combined effort adds +$160 to monthly savings.");
-        System.out.println("Remaining amount needed for the PC: $" +
-                String.format("%.2f", Math.max(0, balance)));
-        System.out.println();
-    }
-
-    private void printFinancePathIntro(double balance) {
-        System.out.println("CHAPTER 1 - EASY CREDIT");
-        System.out.println("-----------------------");
-        System.out.println(friendName + " is tired and suggests financing the PC instead of working.");
-        System.out.println("You sign a payment plan with added interest.");
-        System.out.println("Total remaining balance after the financing agreement: $" +
-                String.format("%.2f", Math.max(0, balance)));
-        System.out.println();
-    }
-
-    // Monthly Payment Simulation
-
-    private int simulateMonthlyPayments(double remaining, double monthly) {
-        if (remaining <= 0) {
-            return 0;
+            sb.append((i + 1) + ") " + jobOptions[i] + "\n");
         }
 
-        System.out.println("PAYMENT JOURNEY");
-        System.out.println("---------------");
+        sb.append("\nYour combined effort adds +$160 to monthly savings.\n");
+        sb.append("Remaining: $" + String.format("%.2f", moneyLeft));
+
+        storyArea.setText(sb.toString());
+
+        JButton btn = new JButton("Continue saving");
+        btn.addActionListener(e -> showPaymentJourney());
+        choicesPanel.add(btn);
+        refresh();
+    }
+
+    private void showFinancePath() {
+        headerLabel.setText("CHAPTER 1 - EASY CREDIT");
+        choicesPanel.removeAll();
+
+        String text = friendName + " is tired and suggests financing the PC instead of working.\n" +
+                "You sign a payment plan with interest.\n\n" +
+                "Total balance: $" + String.format("%.2f", moneyLeft);
+
+        storyArea.setText(text);
+
+        JButton btn = new JButton("Start paying");
+        btn.addActionListener(e -> showPaymentJourney());
+        choicesPanel.add(btn);
+        refresh();
+    }
+
+    private void showPaymentJourney() {
+        headerLabel.setText("PAYMENT JOURNEY");
+        choicesPanel.removeAll();
+
+        if (moneyLeft <= 0) {
+            showChapter2(0);
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        double remaining = moneyLeft;
         int months = 0;
 
         while (remaining > 0) {
             months++;
-            remaining -= monthly;
+            remaining -= savingsPerMonth;
             if (remaining < 0) {
                 remaining = 0;
             }
-            System.out.println("Month " + months + ": saved/paid $" +
-                    String.format("%.2f", monthly) +
-                    " | Remaining: $" + String.format("%.2f", remaining));
+            sb.append("Month " + months + ": paid $" + String.format("%.2f", savingsPerMonth) +
+                    " | Remaining: $" + String.format("%.2f", remaining) + "\n");
         }
 
-        return months;
+        storyArea.setText(sb.toString());
+
+        int finalMonths = months;
+        JButton btn = new JButton("Get the PC!");
+        btn.addActionListener(e -> showChapter2(finalMonths));
+        choicesPanel.add(btn);
+        refresh();
     }
 
-    // Case where it was enough from the start
-    private void printInstantPurchaseChapter() {
-        System.out.println("CHAPTER 2 - READY FROM DAY ONE");
-        System.out.println("------------------------------");
-        System.out.println("To your surprise, the money you had saved was enough.");
-        System.out.println(narratorName + " and " + friendName +
-                " walk into " + storeName + " and pay the PC in full.");
-        System.out.println("The first boot screen lights up the room, "
-                + "and every future game reminds you of that perfect timing.");
-    }
+    // Show chapter 2
+    private void showChapter2(int months) {
+        headerLabel.setText("CHAPTER 2 - THE FIRST BOOT");
+        choicesPanel.removeAll();
 
-    private void printChapter2(int months) {
-        System.out.println();
-        System.out.println("CHAPTER 2 - THE FIRST BOOT");
-        System.out.println("--------------------------");
-
+        String text;
         if (finance) {
-            System.out.println("After " + months + " month(s) of strict payments, "
-                    + narratorName + " and " + friendName
-                    + " finally clear the financed balance.");
-            System.out.println("They realize that quick solutions come with extra cost, "
-                    + "but discipline turned a risky choice into a hard-earned victory.");
+            text = "After " + months + " month(s) of payments, " + narratorName + " and " + friendName +
+                    " clear the balance.\nQuick solutions come with extra cost, but discipline made it a victory.";
         } else {
-            System.out.println("After " + months + " month(s) of working and saving, "
-                    + narratorName + " and " + friendName
-                    + " walk into " + storeName + " with cash in hand.");
-            System.out.println("Every late shift, delivery, and tired weekend "
-                    + "comes back when the PC finally powers on.");
-            System.out.println("The new PC is more than just a pc — it's proof that patience pays off.");
+            text = "After " + months + " month(s) of saving, " + narratorName + " and " + friendName +
+                    " walk into " + storeName
+                    + " with cash.\nEvery late shift was worth it. The PC is proof that patience pays off.";
         }
+
+        storyArea.setText(text);
+
+        JButton btn = new JButton("Continue to Chapter 3");
+        btn.addActionListener(e -> showChapter3());
+        choicesPanel.add(btn);
+        refresh();
     }
 
-    // New Chapter 3
-    private void printChapter3() {
-        System.out.println();
-        System.out.println("CHAPTER 3 - THE GAME BEGINS");
-        System.out.println("---------------------------");
-        System.out.println("When the pc turn on, " + narratorName + " and " + friendName +
-                " started planing ther firts game night.");
+    // Show chapter 3 with storyNode events
+    private void showChapter3() {
+        headerLabel.setText("CHAPTER 3 - THE GAME BEGINS");
+        choicesPanel.removeAll();
+
         storyNode[] events = {
-                new TaskNode("Donload steanm and instal game called: prometían security rescue", 30),
+                new TaskNode("Download Steam and install Prometian Security Rescue", 30),
                 new TaskNode("Set Up Discord", 10),
                 new EventNode("Invite friends to join the game night"),
                 new TaskNode("Configure settings", 15),
-                new MilestoneNode("Game Night Success! and ready to play game"),
+                new MilestoneNode("Game Night Success!"),
                 new TaskNode("Order pizza and snacks", 20),
-                new EventNode("Enjoy the game night with friends and won several rounds")
+                new EventNode("Enjoy the game night with friends")
         };
 
+        StringBuilder sb = new StringBuilder();
+        sb.append("The PC turned on. " + narratorName + " and " + friendName + " planned their first game night.\n\n");
+
         for (storyNode event : events) {
-            event.display();
+            sb.append(event.getDisplay() + "\n");
         }
 
-        System.out.println(
-                "The setup took " + countTime(events, 0) + " mins with " + countTasks(events, 0) + " tasks completed"
-                        + "but the excitement made every minute worthwhile.");
+        sb.append("\nSetup took " + countTime(events, 0) + " mins with " + countTasks(events, 0) + " tasks.");
+
+        storyArea.setText(sb.toString());
+
+        JButton b1 = new JButton("Celebrate victory!");
+        JButton b2 = new JButton("Play all night");
+        JButton b3 = new JButton("Plan next game night");
+
+        b1.addActionListener(e -> showEnding(1));
+        b2.addActionListener(e -> showEnding(2));
+        b3.addActionListener(e -> showEnding(3));
+
+        choicesPanel.add(b1);
+        choicesPanel.add(b2);
+        choicesPanel.add(b3);
+        refresh();
+    }
+
+    private void showEnding(int n) {
+        choicesPanel.removeAll();
+
+        String[] titles = { "ENDING 1 - VICTORY", "ENDING 2 - ALL NIGHT", "ENDING 3 - TO BE CONTINUED" };
+        String[] texts = {
+                narratorName + " and " + friendName + " celebrate!\nAll the hard work paid off.\n\nTHE END",
+                narratorName + " and " + friendName
+                        + " gamed until sunrise!\nThe best adventures happen after midnight.\n\nTHE END",
+                narratorName + " and " + friendName
+                        + " plan the next game night.\nThis is just the beginning.\n\nTO BE CONTINUED..."
+        };
+
+        headerLabel.setText(titles[n - 1]);
+        storyArea.setText(texts[n - 1] + "\n\nThank you for playing PC Adventure!");
+
+        JButton btn = new JButton("Play Again");
+        btn.addActionListener(e -> showInputForm());
+        choicesPanel.add(btn);
+        refresh();
+    }
+
+    private void refresh() {
+        choicesPanel.revalidate();
+        choicesPanel.repaint();
     }
 
     private int countTime(storyNode[] arr, int i) {
@@ -292,7 +326,11 @@ public class PCAdventureGame {
         if (i >= arr.length) {
             return 0;
         }
-        return (arr[i].getTime() > 0 ? 1 : 0) + countTasks(arr, i + 1);
+        if (arr[i].getTime() > 0) {
+            return 1 + countTasks(arr, i + 1);
+        } else {
+            return countTasks(arr, i + 1);
+        }
     }
 }
 
@@ -303,7 +341,7 @@ abstract class storyNode {
         this.name = name;
     }
 
-    public abstract void display();
+    public abstract String getDisplay();
 
     public int getTime() {
         return 0;
@@ -318,8 +356,8 @@ class TaskNode extends storyNode {
         this.min = min;
     }
 
-    public void display() {
-        System.out.println(name + " (" + min + " mins used)");
+    public String getDisplay() {
+        return "• " + name + " (" + min + " mins)";
     }
 
     public int getTime() {
@@ -328,21 +366,23 @@ class TaskNode extends storyNode {
 }
 
 class EventNode extends storyNode {
+
     public EventNode(String name) {
         super(name);
     }
 
-    public void display() {
-        System.out.println(name);
+    public String getDisplay() {
+        return "• " + name;
     }
 }
 
 class MilestoneNode extends storyNode {
+
     public MilestoneNode(String name) {
         super(name);
     }
 
-    public void display() {
-        System.out.println("-- " + name + " --");
+    public String getDisplay() {
+        return "-- " + name + " --";
     }
 }
